@@ -23,24 +23,24 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+          fail-on-cache-miss: false
+
       - name: Install dependencies
+        run: CFLAGS="-O0" pip install . --upgrade
+
+      - name: List directory contents
+        run: ls -la
+
+      - name: Run tests
         run: |
-          sudo apt-get update
-          sudo apt-get install -y coinor-cbc
-          pip install -r requirements.txt
-          python setup.py -q install
-
-      - name: Lint with flake8
-        run: flake8
-
-      - name: Test with pytest
-        env:
-          PYTHONWARNINGS: "ignore::DeprecationWarning"
-        run: pytest --tb=short || true  # Allow the job to continue even if tests fail
-
-      - name: Debugging output
-        if: failure()
-        run: |
-          echo "Tests failed. Collecting additional information..."
-          # Add any additional debugging commands here, such as printing logs or environment details
-          cat pytest.log || true  # Example: print a log file if it exists
+          chmod +x ./runtests.sh
+          ./runtests.sh
+        # Remove or update the working-directory line based on the actual location of runtests.sh
+        # working-directory: path/to/your/scripts
